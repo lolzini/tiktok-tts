@@ -1,0 +1,17 @@
+{
+  "name": "tiktok-tts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lolzini",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^5.2.0",
+    "dotenv": "^16.4.5",
+    "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
+    "tiktok-live-connector": "^1.1.5"
+  }
+}
