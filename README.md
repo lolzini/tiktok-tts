@@ -14,6 +14,8 @@ Usa `VLC Player` para reproducir los audios generados.
 
 Borra los audios después de 10 segundos de reproducirlos.
 
+Agrega un audio llamado `nuevo-regalo.wav` para conectar los eventos de `gift` del chat.
+
 ## Alternativas
 
 ### Usando Microsoft Azure
