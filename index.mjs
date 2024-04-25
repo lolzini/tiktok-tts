@@ -27,3 +27,7 @@ tiktokChatConnection.on("chat", async (data) => {
   await synthAzureAudio(message, route);
   counter += 1;
 });
+
+tiktokChatConnection.on("gift", (data) => {
+  playAudio("nuevo-regalo.wav");
+});
