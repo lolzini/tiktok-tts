@@ -1,10 +1,12 @@
 import { WebcastPushConnection } from "tiktok-live-connector";
 import synthAzureAudio from "./synthAzureAudio.mjs";
+import playAudio from "./playAudio.mjs";
 
 let tiktokUsername = "lolzini_es";
 
 let tiktokChatConnection = new WebcastPushConnection(tiktokUsername, {
   processInitialData: false,
+  fetchRoomInfoOnConnect: false,
 });
 
 tiktokChatConnection
