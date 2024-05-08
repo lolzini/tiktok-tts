@@ -1,7 +1,6 @@
 import "dotenv/config";
 import sdk from "microsoft-cognitiveservices-speech-sdk";
 import playAudio from "./playAudio.mjs";
-import deleteAudio from "./deleteAudio.mjs";
 
 export default async function (message, route) {
   const speechConfig = sdk.SpeechConfig.fromSubscription(
@@ -25,9 +24,6 @@ export default async function (message, route) {
       if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
         console.log(`playing audio: ${route}`);
         playAudio(route);
-        setTimeout(async () => {
-          await deleteAudio(route);
-        }, 10000);
       } else {
         console.error(
           "Speech synthesis canceled, " +
