@@ -18,14 +18,11 @@ tiktokChatConnection
     console.error("Failed to connect", err);
   });
 
-let counter = 0;
-
 tiktokChatConnection.on("chat", async (data) => {
-  const route = `audio-${counter}.wav`;
+  const route = `audio-${Date.now()}.wav`;
   const message = `${data.comment}`;
   console.log(`${data.uniqueId}:${data.comment}`);
   await synthAzureAudio(message, route);
-  counter += 1;
 });
 
 tiktokChatConnection.on("gift", (data) => {
