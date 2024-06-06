@@ -26,5 +26,5 @@ tiktokChatConnection.on("chat", async (data) => {
 });
 
 tiktokChatConnection.on("gift", (data) => {
-  playAudio("nuevo-regalo.wav");
+  playAudio("fairy-dust-sound-effect.mp3");
 });
