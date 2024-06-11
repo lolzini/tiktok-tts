@@ -2,8 +2,8 @@
   "name": "tiktok-tts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.mjs",
   "scripts": {
+    "start": "concurrently --kill-others \"node ./tiktok-chat.mjs\" \"node ./twitch-chat.mjs\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "lolzini",
@@ -14,5 +14,8 @@
     "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
     "tiktok-live-connector": "^1.1.5",
     "tmi.js": "^1.8.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
