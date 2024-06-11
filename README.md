@@ -12,8 +12,6 @@ Usa Azure Speech Services para generar los audios y los guarda dentro de la mism
 
 Usa `VLC Player` para reproducir los audios generados.
 
-Borra los audios después de 10 segundos de reproducirlos.
-
 Agrega un audio llamado `nuevo-regalo.wav` para conectar los eventos de `gift` del chat.
 
 ## Alternativas
