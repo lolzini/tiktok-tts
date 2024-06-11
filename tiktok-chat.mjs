@@ -7,7 +7,6 @@ let tiktokUsername = "lolzini_es";
 let tiktokChatConnection = new WebcastPushConnection(tiktokUsername, {
   processInitialData: false,
   fetchRoomInfoOnConnect: false,
-  sessionId: process.
 });
 
 tiktokChatConnection
