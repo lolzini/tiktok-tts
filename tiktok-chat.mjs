@@ -19,7 +19,7 @@ tiktokChatConnection
   });
 
 tiktokChatConnection.on("chat", async (data) => {
-  const route = `audio-${Date.now()}.wav`;
+  const route = `output/audio-${Date.now()}.wav`;
   const message = `${data.comment}`;
   console.log(`${data.uniqueId}:${data.comment}`);
   await synthAzureAudio(message, route);

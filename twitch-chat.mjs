@@ -12,6 +12,7 @@ client.on("connected", () => {
 });
 
 client.on("message", async (channel, tags, message, self) => {
-  const route = `audio-${Date.now()}.wav`;
-  await synthAzureAudio(message, route);
+  const voice = "es-MX-JorgeNeural";
+  const route = `output/audio-${Date.now()}.wav`;
+  await synthAzureAudio(message, route, voice);
 });
