@@ -2,7 +2,7 @@ import "dotenv/config";
 import sdk from "microsoft-cognitiveservices-speech-sdk";
 import playAudio from "./playAudio.mjs";
 
-export default async function (message, route) {
+export default async function (message, route, voice = "es-MX-YagoNeural") {
   const speechConfig = sdk.SpeechConfig.fromSubscription(
     process.env.KEY,
     process.env.REGION
@@ -11,7 +11,7 @@ export default async function (message, route) {
   const audioConfig = sdk.AudioConfig.fromAudioFileOutput(route);
 
   // The language of the voice that speaks.
-  speechConfig.speechSynthesisVoiceName = "es-MX-YagoNeural";
+  speechConfig.speechSynthesisVoiceName = voice;
   // speechConfig.speechSynthesisOutputFormat =
   //   sdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm;
 
