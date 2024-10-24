@@ -12,7 +12,9 @@ client.on("connected", () => {
 });
 
 client.on("message", async (channel, tags, message, self) => {
-  const voice = "es-MX-JorgeNeural";
+  if (message.startsWith("@") || message.startsWith("!")) return;
+
+  const voice = "es-ES-AlvaroNeural";
   const route = `output/audio-${Date.now()}.wav`;
   await synthAzureAudio(message, route, voice);
 });
