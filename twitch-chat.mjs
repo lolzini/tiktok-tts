@@ -2,6 +2,7 @@ import tmi from "tmi.js";
 import synthAzureAudio from "./synthAzureAudio.mjs";
 import { replaceLinks } from "./utils.mjs";
 import emotes from "./emotes-array.json" with { type: "json" };
+import { addUserToCredits } from "./db.mjs";
 
 const client = new tmi.Client({
   channels: ["lolzini_es"],
@@ -27,6 +28,7 @@ client.on("message", async (channel, tags, message, self) => {
 
   const voice = "es-ES-AlvaroNeural";
   const route = `output/audio-${Date.now()}.wav`;
+  await addUserToCredits(tags["display-name"],"twitch")
   await synthAzureAudio(replaceLinks(filteredMessage), route, voice);
 });
 

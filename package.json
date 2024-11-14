@@ -12,6 +12,7 @@
     "@google-cloud/text-to-speech": "^5.2.0",
     "dotenv": "^16.4.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
+    "pg": "^8.13.1",
     "tiktok-live-connector": "^1.1.5",
     "tmi.js": "^1.8.5"
   },
