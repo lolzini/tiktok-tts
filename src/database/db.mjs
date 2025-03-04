@@ -1,5 +1,6 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import { logInfo, logError } from '../utils/console-colors.mjs';
 
 // Create database connection
 const db = await open({
@@ -30,9 +31,9 @@ export async function addUserToCredits(username, platform) {
                     date_added = ?`,
       [username, platform, today, today]
     );
-    console.log(`Added or updated ${username} for ${platform} on ${today}`);
+    logInfo(platform, `Added or updated ${username} on ${today}`);
   } catch (error) {
-    console.error("Error inserting/updating username:", error);
+    logError(platform, `Error inserting/updating username: ${error}`);
   }
 }
 
@@ -41,10 +42,10 @@ export async function getChatUsernames() {
     const usernames = await db.all(
       "SELECT username, interaction_count, date_added FROM chat_users"
     );
-    console.log("Usernames for credits:", usernames);
+    logInfo('Database', `Retrieved ${usernames.length} usernames for credits`);
     return usernames;
   } catch (error) {
-    console.error("Error getting usernames:", error);
+    logError('Database', `Error getting usernames: ${error}`);
     return [];
   }
 }

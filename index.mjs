@@ -4,6 +4,7 @@ import { createInterface } from "readline";
 import { spawn } from "child_process";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import chalk from "chalk";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -44,19 +45,19 @@ process.on("SIGINT", () => {
 // Main menu function
 function showMainMenu() {
   console.clear();
-  console.log("=== TikTok TTS Chat Platform Selector ===\n");
-  console.log("Select which chat platforms to start:");
-  console.log("1. All platforms");
-  console.log("2. YouTube only");
-  console.log("3. Twitch only");
-  console.log("4. TikTok only");
-  console.log("5. Custom selection");
-  console.log("0. Exit");
+  console.log(chalk.cyan.bold("=== TikTok TTS Chat Platform Selector ===\n"));
+  console.log(chalk.yellow("Select which chat platforms to start:"));
+  console.log(chalk.green("1.") + " All platforms");
+  console.log(chalk.red("2.") + " YouTube only");
+  console.log(chalk.hex("#6441a5")("3.") + " Twitch only");
+  console.log(chalk.hex("#00f2ea")("4.") + " TikTok only");
+  console.log(chalk.blue("5.") + " Custom selection");
+  console.log(chalk.gray("0.") + " Exit");
 
   rl.question("\nEnter your choice (0-5): ", (answer) => {
     switch (answer.trim()) {
       case "0":
-        console.log("Exiting...");
+        console.log(chalk.gray("Exiting..."));
         rl.close();
         process.exit(0);
         break;
@@ -76,7 +77,7 @@ function showMainMenu() {
         showCustomSelectionMenu();
         break;
       default:
-        console.log("Invalid option. Please try again.");
+        console.log(chalk.red("Invalid option. Please try again."));
         setTimeout(showMainMenu, 1500);
     }
   });
@@ -85,12 +86,12 @@ function showMainMenu() {
 // Custom selection menu
 function showCustomSelectionMenu() {
   console.clear();
-  console.log("=== Custom Platform Selection ===\n");
-  console.log("Select platforms (comma-separated numbers):");
-  console.log("1. YouTube");
-  console.log("2. Twitch");
-  console.log("3. TikTok");
-  console.log("0. Back to main menu");
+  console.log(chalk.cyan.bold("=== Custom Platform Selection ===\n"));
+  console.log(chalk.yellow("Select platforms (comma-separated numbers):"));
+  console.log(chalk.red("1.") + " YouTube");
+  console.log(chalk.hex("#6441a5")("2.") + " Twitch");
+  console.log(chalk.hex("#00f2ea")("3.") + " TikTok");
+  console.log(chalk.gray("0.") + " Back to main menu");
 
   rl.question("\nEnter your choices (e.g., 1,3): ", (answer) => {
     if (answer.trim() === "0") {
@@ -106,7 +107,7 @@ function showCustomSelectionMenu() {
     if (choices.includes("3")) selectedPlatforms.push("tiktok");
 
     if (selectedPlatforms.length === 0) {
-      console.log("No valid platforms selected. Please try again.");
+      console.log(chalk.red("No valid platforms selected. Please try again."));
       setTimeout(showCustomSelectionMenu, 1500);
     } else {
       startPlatforms(selectedPlatforms);
@@ -117,11 +118,17 @@ function showCustomSelectionMenu() {
 // Start selected platforms
 function startPlatforms(platformKeys) {
   console.clear();
-  console.log("Starting chat services:\n");
+  console.log(chalk.cyan.bold("Starting chat services:\n"));
 
   platformKeys.forEach((key) => {
     const platform = platforms[key];
-    console.log(`Starting ${platform.name} chat service...`);
+    const platformColor =
+      key === "youtube"
+        ? chalk.red
+        : key === "twitch"
+        ? chalk.hex("#6441a5")
+        : chalk.hex("#00f2ea");
+    console.log(platformColor(`Starting ${platform.name} chat service...`));
 
     const scriptPath = join(__dirname, platform.path);
     const process = spawn("node", [scriptPath], {
@@ -132,13 +139,19 @@ function startPlatforms(platformKeys) {
     activeProcesses.push(process);
 
     process.on("error", (err) => {
-      console.error(`Error starting ${platform.name} chat service:`, err);
-      console.error("Exiting program due to critical error...");
+      console.error(
+        chalk.red(`Error starting ${platform.name} chat service:`),
+        err
+      );
+      console.error(chalk.red("Exiting program due to critical error..."));
       process.exit(1);
     });
 
     process.on("exit", (code) => {
-      console.log(`${platform.name} chat service exited with code ${code}`);
+      const statusColor = code === 0 ? chalk.green : chalk.red;
+      console.log(
+        statusColor(`${platform.name} chat service exited with code ${code}`)
+      );
       const index = activeProcesses.indexOf(process);
       if (index > -1) {
         activeProcesses.splice(index, 1);
@@ -147,7 +160,9 @@ function startPlatforms(platformKeys) {
       // If service exited with error code, exit the program
       if (code !== 0) {
         console.error(
-          `\n${platform.name} service failed with code ${code}. Exiting program...`
+          chalk.red(
+            `\n${platform.name} service failed with code ${code}. Exiting program...`
+          )
         );
         process.exit(1);
       }
@@ -155,17 +170,19 @@ function startPlatforms(platformKeys) {
       // If all processes have exited normally, return to main menu
       if (activeProcesses.length === 0) {
         console.log(
-          "\nAll chat services have stopped. Returning to main menu..."
+          chalk.yellow(
+            "\nAll chat services have stopped. Returning to main menu..."
+          )
         );
         setTimeout(showMainMenu, 2000);
       }
     });
   });
 
-  console.log("\nAll selected chat services are running.");
-  console.log("Press Ctrl+C to stop all services and exit.");
+  console.log(chalk.green("\nAll selected chat services are running."));
+  console.log(chalk.yellow("Press Ctrl+C to stop all services and exit."));
 }
 
 // Start the application
-console.log("Welcome to TikTok TTS Chat Platform Selector");
+console.log(chalk.cyan.bold("Welcome to TikTok TTS Chat Platform Selector"));
 showMainMenu();

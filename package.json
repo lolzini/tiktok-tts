@@ -9,6 +9,7 @@
   "author": "lolzini",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.4.1",
     "dotenv": "^16.4.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
     "pg": "^8.13.1",
