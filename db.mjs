@@ -1,32 +1,34 @@
-import pg from "pg";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 
-const { Pool } = pg;
-
-const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "stream-overlay",
-  password: "12345678",
-  port: 5432,
+// Create database connection
+const db = await open({
+  filename: "./database.sqlite",
+  driver: sqlite3.Database,
 });
 
-pool.connect((error) => {
-  if (error) {
-    console.error("Connection error", error.stack);
-  } else {
-    console.log("Connected to PostgreSQL");
-  }
-});
+// Initialize the table
+await db.exec(`
+  CREATE TABLE IF NOT EXISTS chat_users (
+    username TEXT,
+    platform TEXT,
+    interaction_count INTEGER,
+    date_added TEXT,
+    PRIMARY KEY (username, platform)
+  )
+`);
 
 export async function addUserToCredits(username, platform) {
   const today = new Date().toISOString();
   try {
-    await pool.query(
-      `INSERT INTO chat_users (username, platform, interaction_count, date_added)
-       VALUES ($1, $2, 1, $3)
-       ON CONFLICT (username, date_added, platform)
-       DO UPDATE SET interaction_count = chat_users.interaction_count + 1`,
-      [username, platform, today]
+    await db.run(
+      `
+      INSERT INTO chat_users (username, platform, interaction_count, date_added)
+      VALUES (?, ?, 1, ?)
+      ON CONFLICT(username, platform)
+      DO UPDATE SET interaction_count = interaction_count + 1,
+                    date_added = ?`,
+      [username, platform, today, today]
     );
     console.log(`Added or updated ${username} for ${platform} on ${today}`);
   } catch (error) {
@@ -35,10 +37,14 @@ export async function addUserToCredits(username, platform) {
 }
 
 export async function getChatUsernames() {
-  const res = await pool.query(
-    "SELECT username, interaction_count, date_added FROM chat_users"
-  );
-  const usernames = res.rows;
-  console.log("Usernames for credits:", usernames);
-  return usernames;
+  try {
+    const usernames = await db.all(
+      "SELECT username, interaction_count, date_added FROM chat_users"
+    );
+    console.log("Usernames for credits:", usernames);
+    return usernames;
+  } catch (error) {
+    console.error("Error getting usernames:", error);
+    return [];
+  }
 }

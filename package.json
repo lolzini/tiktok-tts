@@ -12,6 +12,8 @@
     "dotenv": "^16.4.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
     "pg": "^8.13.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "tiktok-live-connector": "^1.1.7",
     "tmi.js": "^1.8.5",
     "youtube-chat": "^2.2.0"
