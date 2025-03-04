@@ -22,21 +22,50 @@ client.on("message", async (channel, tags, message, self) => {
   )
     return;
 
-  const filteredMessage = filterStrings(message,emotes);
+  const filteredMessage = filterStrings(message, emotes);
 
   if (!filteredMessage) return;
 
-  const voice = "es-ES-AlvaroNeural";
+  const username = tags["display-name"];
+
+  const voice = getVoice(username);
   const route = `output/audio-${Date.now()}.wav`;
-  await addUserToCredits(tags["display-name"],"twitch")
+  await addUserToCredits(username, "twitch");
   await synthAzureAudio(replaceLinks(filteredMessage), route, voice);
 });
 
 function filterStrings(message, wordsToFilter) {
-  const pattern = new RegExp(`\\b(${wordsToFilter.map(escapeRegExp).join('|')})\\b`, 'gi');
-  return message.replace(pattern, '').replace(/\s{2,}/g, ' ').trim();
+  const pattern = new RegExp(
+    `\\b(${wordsToFilter.map(escapeRegExp).join("|")})\\b`,
+    "gi"
+  );
+  return message
+    .replace(pattern, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getVoice(username) {
+  switch (username) {
+    case "sergiowagv":
+      return "es-SV-RodrigoNeural";
+    case "ericksinnombre":
+      return "es-ES-TristanMultilingualNeural"
+    case "dylanms96":
+      return "en-US-GuyNeural"
+    case "billie0409":
+      return "pt-BR-DonatoNeural"
+    case "ivancioofx":
+      return "es-MX-JorgeNeural";
+    case "lalinkesis":
+      return "es-MX-CecilioNeural";
+    case "lusm_an":
+      return "es-ES-EstrellaNeural";
+    default:
+      return "es-MX-YagoNeural";
+  }
 }

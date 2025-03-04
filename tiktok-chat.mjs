@@ -23,7 +23,6 @@ tiktokChatConnection
 tiktokChatConnection.on("chat", async (data) => {
   const route = `output/audio-${Date.now()}.wav`;
   const message = replaceLinks(`${data.comment}`);
-  const voice = "es-AR-ElenaNeural";
 
   if (
     message.startsWith("@") ||
@@ -31,6 +30,8 @@ tiktokChatConnection.on("chat", async (data) => {
     message === "undefined"
   )
     return;
+
+  const voice = getVoice(data.uniqueId);
 
   console.log(`${new Date().getTime()} - ${data.uniqueId}:${data.comment}`);
   await addUserToCredits(data.uniqueId, "tiktok");
@@ -47,3 +48,12 @@ tiktokChatConnection.on("gift", async (data) => {
     playAudio("fairy-dust-sound-effect.mp3");
   }
 });
+
+function getVoice(username) {
+  switch (username) {
+    case "lalinkesis":
+      return "es-US-AlonsoNeural";
+    default:
+      return "es-AR-ElenaNeural";
+  }
+}
