@@ -2,8 +2,8 @@
   "name": "tiktok-tts",
   "version": "1.0.0",
   "description": "",
+  "main": "index.mjs",
   "scripts": {
-    "start": "concurrently --kill-others \"node ./youtube-chat.mjs\" \"node ./twitch-chat.mjs\" \"node ./tiktok-chat.mjs\" ",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "lolzini",

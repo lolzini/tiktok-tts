@@ -1,8 +1,8 @@
 import tmi from "tmi.js";
-import synthAzureAudio from "./synthAzureAudio.mjs";
-import { replaceLinks } from "./utils.mjs";
-import emotes from "./emotes-array.json" with { type: "json" };
-import { addUserToCredits } from "./db.mjs";
+import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
+import { replaceLinks } from "../../utils/utils.mjs";
+import emotes from "../../utils/emotes-array.json" with { type: "json" };
+import { addUserToCredits } from "../../database/db.mjs";
 
 const client = new tmi.Client({
   channels: ["lolzini_es"],

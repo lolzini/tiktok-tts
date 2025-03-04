@@ -1,6 +1,6 @@
 import { LiveChat } from "youtube-chat";
-import synthAzureAudio from "./synthAzureAudio.mjs";
-import { addUserToCredits } from "./db.mjs";
+import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
+import { addUserToCredits } from "../../database/db.mjs";
 
 // Replace on each LIVE
 const liveId = "bpu6QdqCAdo";
