@@ -2,7 +2,7 @@ import { WebcastPushConnection } from "tiktok-live-connector";
 import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
 import playAudio from "../../audio/play-audio.mjs";
 import { replaceLinks } from "../../utils/utils.mjs";
-import { addUserToCredits } from "../../database/db.mjs";
+import { addProducerUser, addUserToCredits } from "../../database/db.mjs";
 
 let tiktokUsername = "lolzini_es";
 
@@ -41,6 +41,7 @@ tiktokChatConnection.on("chat", async (data) => {
 tiktokChatConnection.on("gift", async (data) => {
   console.log(`${new Date().getTime()}`);
   await addUserToCredits(data.uniqueId, "tiktok");
+  await addProducerUser(data.uniqueId, "tiktok");
 
   if (data.giftName === "White Rose") {
     playAudio("src/sfx/rosa-blanca.mp3");

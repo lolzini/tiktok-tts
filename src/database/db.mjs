@@ -1,6 +1,6 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
-import { logInfo, logError } from '../utils/console-colors.mjs';
+import { logInfo, logError } from "../utils/console-colors.mjs";
 
 // Create database connection
 const db = await open({
@@ -11,6 +11,16 @@ const db = await open({
 // Initialize the table
 await db.exec(`
   CREATE TABLE IF NOT EXISTS chat_users (
+    username TEXT,
+    platform TEXT,
+    interaction_count INTEGER,
+    date_added TEXT,
+    PRIMARY KEY (username, platform)
+  )
+`);
+
+await db.exec(`
+  CREATE TABLE IF NOT EXISTS producer_users (
     username TEXT,
     platform TEXT,
     interaction_count INTEGER,
@@ -42,10 +52,41 @@ export async function getChatUsernames() {
     const usernames = await db.all(
       "SELECT username, interaction_count, date_added FROM chat_users"
     );
-    logInfo('Database', `Retrieved ${usernames.length} usernames for credits`);
+    logInfo("Database", `Retrieved ${usernames.length} usernames for credits`);
     return usernames;
   } catch (error) {
-    logError('Database', `Error getting usernames: ${error}`);
+    logError("Database", `Error getting usernames: ${error}`);
+    return [];
+  }
+}
+
+export async function addProducerUser(username, platform) {
+  const today = new Date().toISOString();
+  try {
+    await db.run(
+      `
+      INSERT INTO producer_users (username, platform, interaction_count, date_added)
+      VALUES (?, ?, 1, ?)
+      ON CONFLICT(username, platform)
+      DO UPDATE SET interaction_count = interaction_count + 1,
+                    date_added = ?`,
+      [username, platform, today, today]
+    );
+    logInfo(platform, `Added/updated producer ${username} on ${today}`);
+  } catch (error) {
+    logError(platform, `Error with producer user: ${error}`);
+  }
+}
+
+export async function getProducerUsernames() {
+  try {
+    const usernames = await db.all(
+      "SELECT username, interaction_count, date_added FROM producer_users"
+    );
+    logInfo("Database", `Retrieved ${usernames.length} producer usernames`);
+    return usernames;
+  } catch (error) {
+    logError("Database", `Error getting producers: ${error}`);
     return [];
   }
 }
