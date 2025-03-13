@@ -43,10 +43,15 @@ tiktokChatConnection.on("gift", async (data) => {
   await addUserToCredits(data.uniqueId, "tiktok");
   await addProducerUser(data.uniqueId, "tiktok");
 
-  if (data.giftName === "White Rose") {
-    playAudio("src/sfx/rosa-blanca.mp3");
-  } else {
-    playAudio("src/sfx/fairy-dust-sound-effect.mp3");
+  if (data.gift.repeat_end !== 0) {
+    switch (data.giftName) {
+      case "White Rose":
+        playAudio("src/sfx/rosa-blanca.mp3");
+        break;
+      default:
+        playAudio("src/sfx/fairy-dust-sound-effect.mp3");
+        break;
+    }
   }
 });
 
