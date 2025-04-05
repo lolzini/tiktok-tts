@@ -38,6 +38,9 @@ tiktokChatConnection.on("chat", async (data) => {
   await synthAzureAudio(message, route, voice);
 });
 
+// Add this at the top with other declarations
+const userGiftCooldown = new Map();
+
 tiktokChatConnection.on("gift", async (data) => {
   console.log(`${new Date().getTime()}`);
   await addUserToCredits(data.uniqueId, "tiktok");
@@ -45,20 +48,72 @@ tiktokChatConnection.on("gift", async (data) => {
 
   if (data.gift.repeat_end !== 0) {
     switch (data.giftName) {
+      case "Rose":
+        {
+          const randomPipsas = Math.floor(Math.random() * 4) + 1;
+          playAudio(`src/sfx/pipsas-${randomPipsas}.mp3`);
+        }
+        return;
       case "White Rose":
-        playAudio("src/sfx/rosa-blanca.mp3");
+        {
+          const cooldownMs = 60000;
+          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const now = Date.now();
+
+          if (now - lastTrigger < cooldownMs) {
+            return;
+          }
+          userGiftCooldown.set(data.uniqueId, now);
+
+          playAudio("src/sfx/rosa-blanca.mp3");
+        }
+        break;
+      case "Doughnut":
+        {
+          const cooldownMs = 5000;
+          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const now = Date.now();
+
+          if (now - lastTrigger < cooldownMs) {
+            return;
+          }
+          userGiftCooldown.set(data.uniqueId, now);
+
+          playAudio("src/sfx/donuts.mp3");
+        }
+        break;
+      case "Money Gun":
+        {
+          const cooldownMs = 5000;
+          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const now = Date.now();
+
+          if (now - lastTrigger < cooldownMs) {
+            return;
+          }
+          userGiftCooldown.set(data.uniqueId, now);
+
+          playAudio("src/sfx/dinero.mp3");
+        }
         break;
       default:
+        // No cooldown for other gifts
         playAudio("src/sfx/fairy-dust-sound-effect.mp3");
         break;
     }
   }
 });
 
+tiktokChatConnection.on("subscribe", (data) => {
+  playAudio("src/sfx/happy-happy-happy-song.mp3");
+});
+
 function getVoice(username) {
   switch (username) {
+    case "matx23.12":
+      return "es-GQ-JavierNeural";
     case "lalinkesis":
-      return "es-US-AlonsoNeural";
+      return "es-PE-CamilaNeural";
     default:
       return "es-AR-ElenaNeural";
   }
