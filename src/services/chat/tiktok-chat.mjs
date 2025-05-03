@@ -28,8 +28,17 @@ tiktokChatConnection
 tiktokChatConnection.on("chat", async (data) => {
   logDebug("TikTok", `Raw chat event data: ${JSON.stringify(data)}`);
 
+  const username = data.user?.uniqueId;
+  const comment = data.comment;
+
+  if (!username || !comment) {
+    logError("TikTok", "Received chat event with missing username or comment.");
+    logDebug("TikTok", `Problematic chat data: ${JSON.stringify(data)}`);
+    return;
+  }
+
   const route = `output/audio-${Date.now()}.wav`;
-  const message = replaceLinks(`${data.comment}`);
+  const message = replaceLinks(`${comment}`);
 
   if (
     message.startsWith("@") ||
@@ -38,10 +47,10 @@ tiktokChatConnection.on("chat", async (data) => {
   )
     return;
 
-  const voice = getVoice(data.uniqueId);
+  const voice = getVoice(username);
 
-  console.log(`${new Date().getTime()} - ${data.uniqueId}:${data.comment}`);
-  await addUserToCredits(data.uniqueId, "tiktok");
+  console.log(`${new Date().getTime()} - ${username}:${comment}`);
+  await addUserToCredits(username, "tiktok");
   await synthAzureAudio(message, route, voice);
 });
 
@@ -51,18 +60,28 @@ const userGiftCooldown = new Map();
 tiktokChatConnection.on("gift", async (data) => {
   logDebug("TikTok", `Raw gift event data: ${JSON.stringify(data)}`);
 
-  console.log(`${new Date().getTime()}`);
-  await addUserToCredits(data.uniqueId, "tiktok");
-  await addProducerUser(data.uniqueId, "tiktok");
-  await addChatGift(
-    data.uniqueId,
-    "tiktok",
-    data.giftName,
-    data.repeatCount || 1
+  const username = data.user?.uniqueId;
+  const giftName = data.giftDetails?.giftName;
+  const repeatCount = data.repeatCount || 1;
+
+  if (!username || !giftName) {
+    logError(
+      "TikTok",
+      "Received gift event with missing username or gift name."
+    );
+    logDebug("TikTok", `Problematic gift data: ${JSON.stringify(data)}`);
+    return;
+  }
+
+  console.log(
+    `${new Date().getTime()} - Gift from ${username}: ${giftName} x${repeatCount}`
   );
+  await addUserToCredits(username, "tiktok");
+  await addProducerUser(username, "tiktok");
+  await addChatGift(username, "tiktok", giftName, repeatCount);
 
   if (data.repeatEnd) {
-    switch (data.giftName) {
+    switch (giftName) {
       case "Rose":
         {
           const randomPipsas = Math.floor(Math.random() * 4) + 1;
@@ -72,13 +91,13 @@ tiktokChatConnection.on("gift", async (data) => {
       case "White Rose":
         {
           const cooldownMs = 60000;
-          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const lastTrigger = userGiftCooldown.get(username) || 0;
           const now = Date.now();
 
           if (now - lastTrigger < cooldownMs) {
             return;
           }
-          userGiftCooldown.set(data.uniqueId, now);
+          userGiftCooldown.set(username, now);
 
           playAudio("src/sfx/rosa-blanca.mp3");
         }
@@ -86,13 +105,13 @@ tiktokChatConnection.on("gift", async (data) => {
       case "Doughnut":
         {
           const cooldownMs = 5000;
-          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const lastTrigger = userGiftCooldown.get(username) || 0;
           const now = Date.now();
 
           if (now - lastTrigger < cooldownMs) {
             return;
           }
-          userGiftCooldown.set(data.uniqueId, now);
+          userGiftCooldown.set(username, now);
 
           playAudio("src/sfx/donuts.mp3");
         }
@@ -100,13 +119,13 @@ tiktokChatConnection.on("gift", async (data) => {
       case "Money Gun":
         {
           const cooldownMs = 5000;
-          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const lastTrigger = userGiftCooldown.get(username) || 0;
           const now = Date.now();
 
           if (now - lastTrigger < cooldownMs) {
             return;
           }
-          userGiftCooldown.set(data.uniqueId, now);
+          userGiftCooldown.set(username, now);
 
           playAudio("src/sfx/dinero.mp3");
         }
@@ -114,13 +133,13 @@ tiktokChatConnection.on("gift", async (data) => {
       case "Finger Heart":
         {
           const cooldownMs = 5000;
-          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const lastTrigger = userGiftCooldown.get(username) || 0;
           const now = Date.now();
 
           if (now - lastTrigger < cooldownMs) {
             return;
           }
-          userGiftCooldown.set(data.uniqueId, now);
+          userGiftCooldown.set(username, now);
 
           playAudio("src/sfx/chipi-chipi-chapa-chapa.mp3");
         }
@@ -133,8 +152,19 @@ tiktokChatConnection.on("gift", async (data) => {
   }
 });
 
-tiktokChatConnection.on("subscribe", (data) => {
+tiktokChatConnection.on("subscribe", async (data) => {
   logDebug("TikTok", `Raw subscribe event data: ${JSON.stringify(data)}`);
+
+  const username = data.user?.uniqueId;
+
+  if (!username) {
+    logError("TikTok", "Received subscribe event with missing username.");
+    logDebug("TikTok", `Problematic subscribe data: ${JSON.stringify(data)}`);
+    return;
+  }
+
+  logInfo("TikTok", `User ${username} subscribed!`);
+  await addUserToCredits(username, "tiktok");
 
   playAudio("src/sfx/happy-happy-happy-song.mp3");
 });
