@@ -1,9 +1,10 @@
 import { LiveChat } from "youtube-chat";
 import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
 import { addUserToCredits } from "../../database/db.mjs";
+import { logDebug, logInfo, logError } from "../../utils/console-colors.mjs";
 
 // Replace on each LIVE
-const liveId = "bpu6QdqCAdo";
+const liveId = "bKZsJ9ErANI";
 
 const liveChat = new LiveChat({ liveId });
 
@@ -17,6 +18,9 @@ liveChat.on("start", (liveId) => {
 });
 
 liveChat.on("chat", async (chatItem) => {
+  // Log raw event data in dev mode
+  logDebug("YouTube", `Raw chat event data: ${JSON.stringify(chatItem)}`);
+
   if (chatItem.timestamp < initialTime) return;
   const pendingMessages = chatItem.message.filter((m) => m.text);
 
@@ -33,6 +37,9 @@ liveChat.on("chat", async (chatItem) => {
 });
 
 liveChat.on("error", (err) => {
+  // Log raw error data in dev mode
+  logDebug("YouTube", `Raw error event data: ${JSON.stringify(err)}`);
+
   console.error("Error in YouTube live chat:", err);
 });
 

@@ -2,7 +2,12 @@ import { WebcastPushConnection } from "tiktok-live-connector";
 import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
 import playAudio from "../../audio/play-audio.mjs";
 import { replaceLinks } from "../../utils/utils.mjs";
-import { addProducerUser, addUserToCredits } from "../../database/db.mjs";
+import { logDebug, logInfo, logError } from "../../utils/console-colors.mjs";
+import {
+  addProducerUser,
+  addUserToCredits,
+  addChatGift,
+} from "../../database/db.mjs";
 
 let tiktokUsername = "lolzini_es";
 
@@ -21,6 +26,8 @@ tiktokChatConnection
   });
 
 tiktokChatConnection.on("chat", async (data) => {
+  logDebug("TikTok", `Raw chat event data: ${JSON.stringify(data)}`);
+
   const route = `output/audio-${Date.now()}.wav`;
   const message = replaceLinks(`${data.comment}`);
 
@@ -42,18 +49,26 @@ tiktokChatConnection.on("chat", async (data) => {
 const userGiftCooldown = new Map();
 
 tiktokChatConnection.on("gift", async (data) => {
+  logDebug("TikTok", `Raw gift event data: ${JSON.stringify(data)}`);
+
   console.log(`${new Date().getTime()}`);
   await addUserToCredits(data.uniqueId, "tiktok");
   await addProducerUser(data.uniqueId, "tiktok");
+  await addChatGift(
+    data.uniqueId,
+    "tiktok",
+    data.giftName,
+    data.repeatCount || 1
+  );
 
-  if (data.gift.repeat_end !== 0) {
+  if (data.repeatEnd) {
     switch (data.giftName) {
       case "Rose":
         {
           const randomPipsas = Math.floor(Math.random() * 4) + 1;
           playAudio(`src/sfx/pipsas-${randomPipsas}.mp3`);
         }
-        return;
+        break;
       case "White Rose":
         {
           const cooldownMs = 60000;
@@ -96,6 +111,20 @@ tiktokChatConnection.on("gift", async (data) => {
           playAudio("src/sfx/dinero.mp3");
         }
         break;
+      case "Finger Heart":
+        {
+          const cooldownMs = 5000;
+          const lastTrigger = userGiftCooldown.get(data.uniqueId) || 0;
+          const now = Date.now();
+
+          if (now - lastTrigger < cooldownMs) {
+            return;
+          }
+          userGiftCooldown.set(data.uniqueId, now);
+
+          playAudio("src/sfx/chipi-chipi-chapa-chapa.mp3");
+        }
+        break;
       default:
         // No cooldown for other gifts
         playAudio("src/sfx/fairy-dust-sound-effect.mp3");
@@ -105,6 +134,8 @@ tiktokChatConnection.on("gift", async (data) => {
 });
 
 tiktokChatConnection.on("subscribe", (data) => {
+  logDebug("TikTok", `Raw subscribe event data: ${JSON.stringify(data)}`);
+
   playAudio("src/sfx/happy-happy-happy-song.mp3");
 });
 
@@ -114,6 +145,10 @@ function getVoice(username) {
       return "es-GQ-JavierNeural";
     case "lalinkesis":
       return "es-PE-CamilaNeural";
+    case ".yosoytravis":
+      return "es-ES-TristanMultilingualNeural";
+    case "luciisalazar491":
+      return "es-ES-EstrellaNeural";
     default:
       return "es-AR-ElenaNeural";
   }

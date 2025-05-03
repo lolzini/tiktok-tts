@@ -3,6 +3,11 @@ import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
 import { replaceLinks } from "../../utils/utils.mjs";
 import emotes from "../../utils/emotes-array.json" with { type: "json" };
 import { addUserToCredits } from "../../database/db.mjs";
+import {
+  logDebug,
+  logInfo,
+  logError,
+} from "../../utils/console-colors.mjs";
 
 const client = new tmi.Client({
   channels: ["lolzini_es"],
@@ -15,6 +20,13 @@ client.on("connected", () => {
 });
 
 client.on("message", async (channel, tags, message, self) => {
+  logDebug(
+    "Twitch",
+    `Raw message event data: channel=${channel}, tags=${JSON.stringify(
+      tags
+    )}, message=${message}, self=${self}`
+  );
+
   if (
     message.startsWith("@") ||
     message.startsWith("!") ||

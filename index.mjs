@@ -5,6 +5,13 @@ import { spawn } from "child_process";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import chalk from "chalk";
+import { logDebug } from "./src/utils/console-colors.mjs";
+
+// Check for development mode
+if (process.env.NODE_ENV === "development") {
+  console.log(chalk.yellow.bold("\n*** RUNNING IN DEVELOPMENT MODE ***\n"));
+  // You can add more dev-specific initializations here
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

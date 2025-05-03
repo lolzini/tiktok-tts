@@ -1,0 +1,142 @@
+[
+  {
+    "giftId": 8239,
+    "repeatCount": 1,
+    "groupId": "1741835257216",
+    "userId": "7246556284844114949",
+    "secUid": "MS4wLjABAAAAhD9JY2MEsqszmpQ05k7xL-wm_g2LIpBqdH6EmN_t-BoUany-V588_aBPgekNKRBE",
+    "uniqueId": "matx23.12",
+    "nickname": "Mattx23",
+    "profilePictureUrl": "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7254583664171417605~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=0f654d7e&x-expires=1742007600&x-signature=qQrrOObMVAYxDEi1mYPqI4WI%2FIk%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+    "followRole": 3,
+    "userBadges": [
+      {
+        "type": "image",
+        "badgeSceneType": 6,
+        "displayType": 1,
+        "url": "https://p19-webcast.tiktokcdn.com/webcast-sg/new_top_gifter_version_2.png~tplv-obj.image"
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7138381747292477220",
+        "level": 11,
+        "badgeSceneType": 8
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7196929090442513157",
+        "level": 8,
+        "badgeSceneType": 10
+      }
+    ],
+    "userSceneTypes": [6, 8, 6, 10],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7254583664171417605~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=0f654d7e&x-expires=1742007600&x-signature=qQrrOObMVAYxDEi1mYPqI4WI%2FIk%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+        "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7254583664171417605~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=42d8028d&x-expires=1742007600&x-signature=T%2Fv7WjaDT83gKrBwn%2FBfvncY8I8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 928,
+      "followerCount": 21,
+      "followStatus": 3,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": null,
+    "gifterLevel": 11,
+    "teamMemberLevel": 8,
+    "msgId": "7481125297220307767",
+    "createTime": "1741835257525",
+    "displayType": "webcast_aweme_gift_send_messageNew",
+    "label": "{0:user} sent {1:gift} × {2:string}",
+    "repeatEnd": false,
+    "gift": {
+      "gift_id": 8239,
+      "repeat_count": 1,
+      "repeat_end": 0,
+      "gift_type": 1
+    },
+    "describe": "Sent White Rose",
+    "giftType": 1,
+    "diamondCount": 1,
+    "giftName": "White Rose",
+    "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/a2d81f3847457be9083a9c76a59b08cb~tplv-obj.png",
+    "timestamp": 1741835257527,
+    "receiverUserId": "7027537387762205702"
+  },
+  {
+    "giftId": 8239,
+    "repeatCount": 1,
+    "repeatEnd": true,
+    "groupId": "1741835437251",
+    "userId": "7246556284844114949",
+    "secUid": "MS4wLjABAAAAhD9JY2MEsqszmpQ05k7xL-wm_g2LIpBqdH6EmN_t-BoUany-V588_aBPgekNKRBE",
+    "uniqueId": "matx23.12",
+    "nickname": "Mattx23",
+    "profilePictureUrl": "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7254583664171417605~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=24a681ee&x-expires=1742004000&x-signature=HRRuq6c%2B%2BAT7qWIVZlJpaDOeso8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+    "followRole": 0,
+    "userBadges": [
+      {
+        "type": "image",
+        "badgeSceneType": 6,
+        "displayType": 1,
+        "url": "https://p19-webcast.tiktokcdn.com/webcast-sg/new_top_gifter_version_2.png~tplv-obj.image"
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7138381747292477220",
+        "level": 11,
+        "badgeSceneType": 8
+      },
+      {
+        "type": "privilege",
+        "privilegeId": "7196929090442513157",
+        "level": 8,
+        "badgeSceneType": 10
+      }
+    ],
+    "userSceneTypes": [6, 8, 10, 6],
+    "userDetails": {
+      "createTime": "0",
+      "bioDescription": "",
+      "profilePictureUrls": [
+        "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7254583664171417605~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=24a681ee&x-expires=1742004000&x-signature=HRRuq6c%2B%2BAT7qWIVZlJpaDOeso8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+        "https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/7254583664171417605~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=d81a2522&x-expires=1742004000&x-signature=vcXlSFIEBYp0liFy%2Ff8QQO71vew%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva"
+      ]
+    },
+    "followInfo": {
+      "followingCount": 928,
+      "followerCount": 21,
+      "followStatus": 0,
+      "pushStatus": 0
+    },
+    "isModerator": false,
+    "isNewGifter": false,
+    "isSubscriber": false,
+    "topGifterRank": null,
+    "gifterLevel": 11,
+    "teamMemberLevel": 8,
+    "msgId": "7481126120693304070",
+    "createTime": "1741835441154",
+    "displayType": "webcast_aweme_gift_send_messageNew",
+    "label": "{0:user} sent {1:gift} × {2:string}",
+    "gift": {
+      "gift_id": 8239,
+      "repeat_count": 1,
+      "repeat_end": 1,
+      "gift_type": 1
+    },
+    "describe": "Sent White Rose",
+    "giftType": 1,
+    "diamondCount": 1,
+    "giftName": "White Rose",
+    "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/a2d81f3847457be9083a9c76a59b08cb~tplv-obj.png",
+    "timestamp": 1741835441155,
+    "receiverUserId": "7027537387762205702"
+  }
+]
