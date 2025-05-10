@@ -1,5 +1,4 @@
-import { WebSocketServer } from "ws";
-import chalk from "chalk";
+import { EventEmitter } from "events";
 import { TikTokLiveConnection } from "tiktok-live-connector";
 import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
 import playAudio from "../../audio/play-audio.mjs";
@@ -11,247 +10,283 @@ import {
   addChatGift,
 } from "../../database/db.mjs";
 
-let tiktokUsername = "lolzini_es";
+class TikTokChatClient extends EventEmitter {
+  constructor(username) {
+    super();
+    this.tiktokUsername = username || "lolzini_es";
+    this.tiktokChatConnection = null;
+    this.userGiftCooldown = new Map();
+    logInfo("TikTokClient", `Instance created for ${this.tiktokUsername}`);
+  }
 
-// WebSocket server instance for TikTok chat
-let tiktokWss;
-const TIKTOK_WEBSOCKET_PORT = 8081; // Port for this specific WebSocket server
-
-// Function to start the WebSocket server within tiktok-chat.mjs
-function startTikTokWebSocketServer(port) {
-  tiktokWss = new WebSocketServer({ port });
-  console.log(
-    chalk.blueBright(
-      `[TikTok Child Process] WebSocket server started on port ${port}`
-    )
-  );
-
-  tiktokWss.on("connection", (ws) => {
-    console.log(
-      chalk.blueBright("[TikTok Child Process] WebSocket client connected")
-    );
-    ws.on("close", () => {
-      console.log(
-        chalk.blueBright("[TikTok Child Process] WebSocket client disconnected")
-      );
+  connect() {
+    logInfo("TikTokClient", `connect() called for ${this.tiktokUsername}`);
+    this.tiktokChatConnection = new TikTokLiveConnection(this.tiktokUsername, {
+      processInitialData: false,
+      fetchRoomInfoOnConnect: false,
     });
-    ws.on("error", (error) => {
-      console.error(
-        chalk.red("[TikTok Child Process] WebSocket error:"),
-        error
+
+    this._setupEventHandlers();
+    return this.tiktokChatConnection
+      .connect()
+      .then((state) => {
+        logInfo(
+          "TikTokClient",
+          `Successfully connected to TikTok live for ${
+            this.tiktokUsername
+          }. State: ${JSON.stringify(state)}`
+        );
+        this.emit("event", {
+          type: "system",
+          platform: "tiktok",
+          event: "connected",
+          data: { ...state, username: this.tiktokUsername },
+        });
+      })
+      .catch((err) => {
+        logError(
+          "TikTokClient",
+          `Failed to connect to TikTok for ${this.tiktokUsername}: ${err.message}`
+        );
+        this.emit("event", {
+          type: "system",
+          platform: "tiktok",
+          event: "connection_error",
+          data: {
+            message: err.message,
+            stack: err.stack,
+            username: this.tiktokUsername,
+          },
+        });
+      });
+  }
+
+  _setupEventHandlers() {
+    logInfo(
+      "TikTokClient",
+      `_setupEventHandlers() called for ${this.tiktokUsername}`
+    );
+    this.tiktokChatConnection.on("chat", async (data) => {
+      logInfo(
+        "TikTokClient",
+        `on("chat") event received for ${this.tiktokUsername}`
       );
+      logDebug("TikTokClient", `Raw chat event data: ${JSON.stringify(data)}`);
+
+      const username = data.user?.uniqueId;
+      const comment = data.comment;
+
+      if (!username || !comment) {
+        logError("TikTokClient", "Chat event missing username or comment.");
+        return;
+      }
+
+      this.emit("event", { type: "chat", platform: "tiktok", data });
+
+      const route = `output/audio-${Date.now()}.wav`;
+      const message = replaceLinks(`${comment}`);
+
+      if (
+        message.startsWith("@") ||
+        message.startsWith("http") ||
+        message === "undefined"
+      ) {
+        logDebug("TikTokClient", `Skipping TTS for comment: ${message}`);
+        return;
+      }
+
+      const voice = this._getVoice(username);
+      logInfo(
+        "TikTokClient",
+        `Preparing to synthesize chat for ${username}: "${message}" with voice ${voice} to route ${route}`
+      );
+      try {
+        await synthAzureAudio(message, route, voice);
+        logInfo(
+          "TikTokClient",
+          `Finished synthAzureAudio for ${username}: "${message}". Assuming playback is handled internally by synthAzureAudio for TikTok.`
+        );
+      } catch (synthError) {
+        logError(
+          "TikTokClient",
+          `Error during synthAzureAudio for ${username}: ${synthError.message}`
+        );
+      }
+      await addUserToCredits(username, "tiktok");
     });
-  });
 
-  tiktokWss.on("error", (error) => {
-    console.error(
-      chalk.red("[TikTok Child Process] WebSocket Server Error:"),
-      error
-    );
-  });
-}
+    this.tiktokChatConnection.on("gift", async (data) => {
+      logInfo(
+        "TikTokClient",
+        `on("gift") event received for ${this.tiktokUsername}`
+      );
+      logDebug("TikTokClient", `Raw gift event data: ${JSON.stringify(data)}`);
 
-// Function to broadcast messages from this TikTok WebSocket server
-function broadcastTikTokEvent(event) {
-  if (!tiktokWss) {
-    console.warn(
-      chalk.yellow(
-        "[TikTok Child Process] WebSocket server not initialized. Cannot broadcast."
-      )
-    );
-    return;
+      const username = data.user?.uniqueId;
+      const giftName = data.giftDetails?.giftName;
+      const repeatCount = data.repeatCount || 1;
+
+      if (!username || !giftName) {
+        logError("TikTokClient", "Gift event missing username or gift name.");
+        return;
+      }
+
+      this.emit("event", { type: "gift", platform: "tiktok", data });
+
+      await addUserToCredits(username, "tiktok");
+      await addProducerUser(username, "tiktok");
+      await addChatGift(username, "tiktok", giftName, repeatCount);
+      logInfo(
+        "TikTokClient",
+        `Gift from ${username}: ${giftName} x${repeatCount}. Added to credits/DB.`
+      );
+
+      if (data.repeatEnd) {
+        logInfo(
+          "TikTokClient",
+          `Gift repeatEnd for ${giftName}. Processing SFX.`
+        );
+        let sfxPath = "src/sfx/fairy-dust-sound-effect.mp3";
+        let playSpecificSfx = true;
+
+        switch (giftName) {
+          case "Rose":
+            const randomPipsas = Math.floor(Math.random() * 4) + 1;
+            sfxPath = `src/sfx/pipsas-${randomPipsas}.mp3`;
+            break;
+          case "White Rose":
+            const cooldownMsWR = 60000;
+            const lastTriggerWR =
+              this.userGiftCooldown.get(`${username}_WhiteRose`) || 0;
+            if (Date.now() - lastTriggerWR < cooldownMsWR)
+              playSpecificSfx = false;
+            else this.userGiftCooldown.set(`${username}_WhiteRose`, Date.now());
+            sfxPath = "src/sfx/rosa-blanca.mp3";
+            break;
+          case "Doughnut":
+            const cooldownMsD = 5000;
+            const lastTriggerD =
+              this.userGiftCooldown.get(`${username}_Doughnut`) || 0;
+            if (Date.now() - lastTriggerD < cooldownMsD)
+              playSpecificSfx = false;
+            else this.userGiftCooldown.set(`${username}_Doughnut`, Date.now());
+            sfxPath = "src/sfx/donuts.mp3";
+            break;
+          case "Money Gun":
+            const cooldownMsMG = 5000;
+            const lastTriggerMG =
+              this.userGiftCooldown.get(`${username}_MoneyGun`) || 0;
+            if (Date.now() - lastTriggerMG < cooldownMsMG)
+              playSpecificSfx = false;
+            else this.userGiftCooldown.set(`${username}_MoneyGun`, Date.now());
+            sfxPath = "src/sfx/dinero.mp3";
+            break;
+          case "Finger Heart":
+            const cooldownMsFH = 5000;
+            const lastTriggerFH =
+              this.userGiftCooldown.get(`${username}_FingerHeart`) || 0;
+            if (Date.now() - lastTriggerFH < cooldownMsFH)
+              playSpecificSfx = false;
+            else
+              this.userGiftCooldown.set(`${username}_FingerHeart`, Date.now());
+            sfxPath = "src/sfx/chipi-chipi-chapa-chapa.mp3";
+            break;
+          default:
+            break;
+        }
+        if (playSpecificSfx) {
+          logInfo(
+            "TikTokClient",
+            `Attempting to play SFX: ${sfxPath} for gift ${giftName}`
+          );
+          try {
+            await playAudio(sfxPath);
+            logInfo("TikTokClient", `Finished playing SFX: ${sfxPath}`);
+          } catch (playAudioError) {
+            logError(
+              "TikTokClient",
+              `Error playing SFX ${sfxPath}: ${playAudioError.message}`
+            );
+          }
+        } else {
+          logInfo(
+            "TikTokClient",
+            `SFX for ${giftName} on cooldown for user ${username}. Skipping playback.`
+          );
+        }
+      }
+    });
+
+    this.tiktokChatConnection.on("subscribe", async (data) => {
+      logInfo(
+        "TikTokClient",
+        `on("subscribe") event received for ${this.tiktokUsername}`
+      );
+      logDebug(
+        "TikTokClient",
+        `Raw subscribe event data: ${JSON.stringify(data)}`
+      );
+      const username = data.user?.uniqueId;
+      if (!username) {
+        logError("TikTokClient", "Subscribe event missing username.");
+        return;
+      }
+      this.emit("event", { type: "subscribe", platform: "tiktok", data });
+      await addUserToCredits(username, "tiktok");
+      logInfo(
+        "TikTokClient",
+        `User ${username} subscribed! Added to credits. Playing SFX.`
+      );
+      const sfxPath = "src/sfx/happy-happy-happy-song.mp3";
+      try {
+        await playAudio(sfxPath);
+        logInfo(
+          "TikTokClient",
+          `Finished playing subscription SFX: ${sfxPath}`
+        );
+      } catch (playAudioError) {
+        logError(
+          "TikTokClient",
+          `Error playing subscription SFX ${sfxPath}: ${playAudioError.message}`
+        );
+      }
+    });
+
+    this.tiktokChatConnection.on("disconnect", (reason) => {
+      logError(
+        "TikTokClient",
+        `on("disconnect") event. Disconnected from TikTok for ${this.tiktokUsername}. Reason: ${reason}`
+      );
+      this.emit("event", {
+        type: "system",
+        platform: "tiktok",
+        event: "disconnected",
+        data: { reason, username: this.tiktokUsername },
+      });
+    });
   }
-  const messageString = JSON.stringify(event);
-  tiktokWss.clients.forEach((client) => {
-    if (client.readyState === client.OPEN) {
-      // Check WebSocket.OPEN constant if available in 'ws'
-      client.send(messageString);
-    }
-  });
-}
 
-let tiktokChatConnection = new TikTokLiveConnection(tiktokUsername, {
-  processInitialData: false,
-  fetchRoomInfoOnConnect: false,
-});
-
-tiktokChatConnection
-  .connect()
-  .then((state) => {
-    console.info(`TikTok Connected`);
-    // Start the WebSocket server once TikTok connection is successful
-    startTikTokWebSocketServer(TIKTOK_WEBSOCKET_PORT);
-  })
-  .catch((err) => {
-    console.error("Failed to connect to TikTok", err);
-    // Optionally, still start WebSocket server or exit based on requirements
-    // For now, if TikTok fails to connect, its WebSocket server won't start.
-  });
-
-tiktokChatConnection.on("chat", async (data) => {
-  logDebug("TikTok", `Raw chat event data: ${JSON.stringify(data)}`);
-
-  const username = data.user?.uniqueId;
-  const comment = data.comment;
-
-  if (!username || !comment) {
-    logError("TikTok", "Received chat event with missing username or comment.");
-    logDebug("TikTok", `Problematic chat data: ${JSON.stringify(data)}`);
-    return;
-  }
-
-  // Broadcast via local WebSocket server
-  broadcastTikTokEvent({ type: "chat", platform: "tiktok", data });
-
-  const route = `output/audio-${Date.now()}.wav`;
-  const message = replaceLinks(`${comment}`);
-
-  if (
-    message.startsWith("@") ||
-    message.startsWith("http") ||
-    message === "undefined"
-  )
-    return;
-
-  const voice = getVoice(username);
-
-  console.log(`${new Date().getTime()} - ${username}:${comment}`);
-  await addUserToCredits(username, "tiktok");
-  await synthAzureAudio(message, route, voice);
-});
-
-// Add this at the top with other declarations
-const userGiftCooldown = new Map();
-
-tiktokChatConnection.on("gift", async (data) => {
-  logDebug("TikTok", `Raw gift event data: ${JSON.stringify(data)}`);
-
-  const username = data.user?.uniqueId;
-  const giftName = data.giftDetails?.giftName;
-  const repeatCount = data.repeatCount || 1;
-
-  if (!username || !giftName) {
-    logError(
-      "TikTok",
-      "Received gift event with missing username or gift name."
-    );
-    logDebug("TikTok", `Problematic gift data: ${JSON.stringify(data)}`);
-    return;
-  }
-
-  // Broadcast via local WebSocket server
-  broadcastTikTokEvent({ type: "gift", platform: "tiktok", data });
-
-  console.log(
-    `${new Date().getTime()} - Gift from ${username}: ${giftName} x${repeatCount}`
-  );
-  await addUserToCredits(username, "tiktok");
-  await addProducerUser(username, "tiktok");
-  await addChatGift(username, "tiktok", giftName, repeatCount);
-
-  if (data.repeatEnd) {
-    switch (giftName) {
-      case "Rose":
-        {
-          const randomPipsas = Math.floor(Math.random() * 4) + 1;
-          playAudio(`src/sfx/pipsas-${randomPipsas}.mp3`);
-        }
-        break;
-      case "White Rose":
-        {
-          const cooldownMs = 60000;
-          const lastTrigger = userGiftCooldown.get(username) || 0;
-          const now = Date.now();
-
-          if (now - lastTrigger < cooldownMs) {
-            return;
-          }
-          userGiftCooldown.set(username, now);
-
-          playAudio("src/sfx/rosa-blanca.mp3");
-        }
-        break;
-      case "Doughnut":
-        {
-          const cooldownMs = 5000;
-          const lastTrigger = userGiftCooldown.get(username) || 0;
-          const now = Date.now();
-
-          if (now - lastTrigger < cooldownMs) {
-            return;
-          }
-          userGiftCooldown.set(username, now);
-
-          playAudio("src/sfx/donuts.mp3");
-        }
-        break;
-      case "Money Gun":
-        {
-          const cooldownMs = 5000;
-          const lastTrigger = userGiftCooldown.get(username) || 0;
-          const now = Date.now();
-
-          if (now - lastTrigger < cooldownMs) {
-            return;
-          }
-          userGiftCooldown.set(username, now);
-
-          playAudio("src/sfx/dinero.mp3");
-        }
-        break;
-      case "Finger Heart":
-        {
-          const cooldownMs = 5000;
-          const lastTrigger = userGiftCooldown.get(username) || 0;
-          const now = Date.now();
-
-          if (now - lastTrigger < cooldownMs) {
-            return;
-          }
-          userGiftCooldown.set(username, now);
-
-          playAudio("src/sfx/chipi-chipi-chapa-chapa.mp3");
-        }
-        break;
+  _getVoice(username) {
+    switch (username) {
+      case "matx23.12":
+        return "es-GQ-JavierNeural";
+      case "lalinkesis":
+        return "es-PE-CamilaNeural";
+      case ".yosoytravis":
+        return "es-ES-TristanMultilingualNeural";
+      case "luciisalazar491":
+        return "es-ES-EstrellaNeural";
       default:
-        // No cooldown for other gifts
-        playAudio("src/sfx/fairy-dust-sound-effect.mp3");
-        break;
+        return "es-AR-ElenaNeural";
     }
   }
-});
 
-tiktokChatConnection.on("subscribe", async (data) => {
-  logDebug("TikTok", `Raw subscribe event data: ${JSON.stringify(data)}`);
-
-  const username = data.user?.uniqueId;
-
-  if (!username) {
-    logError("TikTok", "Received subscribe event with missing username.");
-    logDebug("TikTok", `Problematic subscribe data: ${JSON.stringify(data)}`);
-    return;
-  }
-
-  // Broadcast via local WebSocket server
-  broadcastTikTokEvent({ type: "subscribe", platform: "tiktok", data });
-
-  logInfo("TikTok", `User ${username} subscribed!`);
-  await addUserToCredits(username, "tiktok");
-
-  playAudio("src/sfx/happy-happy-happy-song.mp3");
-});
-
-function getVoice(username) {
-  switch (username) {
-    case "matx23.12":
-      return "es-GQ-JavierNeural";
-    case "lalinkesis":
-      return "es-PE-CamilaNeural";
-    case ".yosoytravis":
-      return "es-ES-TristanMultilingualNeural";
-    case "luciisalazar491":
-      return "es-ES-EstrellaNeural";
-    default:
-      return "es-AR-ElenaNeural";
+  disconnect() {
+    logInfo("TikTokClient", `disconnect() called for ${this.tiktokUsername}`);
+    if (this.tiktokChatConnection) {
+      this.tiktokChatConnection.disconnect();
+    }
   }
 }
+
+export default TikTokChatClient;

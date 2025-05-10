@@ -1,12 +1,12 @@
 import WebSocket from "ws";
 
-const TIKTOK_WEBSOCKET_URL = "ws://localhost:8081";
+const CENTRAL_WEBSOCKET_URL = "ws://localhost:8081";
 
 console.log(
-  `Attempting to connect to WebSocket server at ${TIKTOK_WEBSOCKET_URL}...`
+  `Attempting to connect to WebSocket server at ${CENTRAL_WEBSOCKET_URL}...`
 );
 
-const client = new WebSocket(TIKTOK_WEBSOCKET_URL);
+const client = new WebSocket(CENTRAL_WEBSOCKET_URL);
 
 client.on("open", () => {
   console.log("[Client] Connected to WebSocket server!");

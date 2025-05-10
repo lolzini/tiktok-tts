@@ -1,0 +1,88 @@
+[Client] Connected to WebSocket server!
+[Client] Received message:
+{
+  type: 'chat',
+  platform: 'tiktok',
+  data: {
+    event: { msgId: '7502653271086189317', createTime: '1746847599067' },
+    user: {
+      userId: '6805674280992621574',
+      nickname: 'Alonso Castillo Davalos',
+      profilePicture: {
+        urls: [
+          'https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/6b26f1e9d6dce68f1b17c11161225c65~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=47332c15&x-expires=1747018800&x-signature=GLu55bnA5V4SLvfL9lT82kPc3NU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva',
+          'https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/6b26f1e9d6dce68f1b17c11161225c65~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=52efebe9&x-expires=1747018800&x-signature=PX4Ss7vPHlxMttsnqedmT3XQEM4%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva'    
+        ]
+      },
+      uniqueId: 'alocaleb',
+      secUid: 'MS4wLjABAAAAN8vyWrc7hxXAh_IbRU2JUxQU_A2M2DN4oCVS62_nSiVd62ilqOtaJmrmkQlWmYTY',
+      badges: [],
+      createTime: '0',
+      bioDescription: '',
+      followInfo: {
+        followingCount: 410,
+        followerCount: 123,
+        followStatus: 1,
+        pushStatus: 0
+      }
+    },
+    comment: 'cómo se que lenguaje sirve para algo',
+    emotes: []
+  }
+}
+[Client] Received message:
+{
+  type: 'message',
+  platform: 'twitch',
+  data: {
+    channel: '#lolzini_es',
+    tags: {
+      'badge-info': { subscriber: '6' },
+      badges: { broadcaster: '1', subscriber: '6' },
+      'client-nonce': '2a86a1d088874ed664970c5404cee4b7',
+      color: null,
+      'display-name': 'lolzini_es',
+      emotes: null,
+      'first-msg': false,
+      flags: null,
+      id: '3ea38454-ef64-43d2-83a5-b6417e2d2162',
+      mod: false,
+      'returning-chatter': false,
+      'room-id': '1029661406',
+      subscriber: true,
+      'tmi-sent-ts': '1746847638055',
+      turbo: false,
+      'user-id': '1029661406',
+      'user-type': null,
+      'emotes-raw': null,
+      'badge-info-raw': 'subscriber/6',
+      'badges-raw': 'broadcaster/1,subscriber/6',
+      username: 'lolzini_es',
+      'message-type': 'chat'
+    },
+    message: 'hola desde twitch',
+    self: false
+  }
+}
+[Client] Received message:
+{
+  type: 'chat',
+  platform: 'youtube',
+  data: {
+    id: 'ChwKGkNMQzZyTW42bDQwREZlLVA1UWNkRWxjUjRB',
+    author: {
+      name: 'Imanol ',
+      thumbnail: {
+        url: 'https://yt4.ggpht.com/JbeV8Tb9qYzqVkPcRo1m7iIJV4GWpwjUnzfk700LU8u23KROCBeYqb-IGLVmpQqPWK25fhsC7A=s64-c-k-c0x00ffffff-no-rj',
+        alt: 'Imanol '
+      },
+      channelId: 'UCufkHzyvyhLGCvqoi78prTQ'
+    },
+    message: [ { text: 'Que andamos haciendo ahorita ' } ],
+    isMembership: false,
+    isOwner: false,
+    isVerified: false,
+    isModerator: false,
+    timestamp: '2025-05-10T03:27:21.838Z'
+  }
+}
