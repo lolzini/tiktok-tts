@@ -1,4 +1,6 @@
-import { WebcastPushConnection } from "tiktok-live-connector";
+import { WebSocketServer } from "ws";
+import chalk from "chalk";
+import { TikTokLiveConnection } from "tiktok-live-connector";
 import synthAzureAudio from "../../audio/synth-azure-audio.mjs";
 import playAudio from "../../audio/play-audio.mjs";
 import { replaceLinks } from "../../utils/utils.mjs";
@@ -11,7 +13,64 @@ import {
 
 let tiktokUsername = "lolzini_es";
 
-let tiktokChatConnection = new WebcastPushConnection(tiktokUsername, {
+// WebSocket server instance for TikTok chat
+let tiktokWss;
+const TIKTOK_WEBSOCKET_PORT = 8081; // Port for this specific WebSocket server
+
+// Function to start the WebSocket server within tiktok-chat.mjs
+function startTikTokWebSocketServer(port) {
+  tiktokWss = new WebSocketServer({ port });
+  console.log(
+    chalk.blueBright(
+      `[TikTok Child Process] WebSocket server started on port ${port}`
+    )
+  );
+
+  tiktokWss.on("connection", (ws) => {
+    console.log(
+      chalk.blueBright("[TikTok Child Process] WebSocket client connected")
+    );
+    ws.on("close", () => {
+      console.log(
+        chalk.blueBright("[TikTok Child Process] WebSocket client disconnected")
+      );
+    });
+    ws.on("error", (error) => {
+      console.error(
+        chalk.red("[TikTok Child Process] WebSocket error:"),
+        error
+      );
+    });
+  });
+
+  tiktokWss.on("error", (error) => {
+    console.error(
+      chalk.red("[TikTok Child Process] WebSocket Server Error:"),
+      error
+    );
+  });
+}
+
+// Function to broadcast messages from this TikTok WebSocket server
+function broadcastTikTokEvent(event) {
+  if (!tiktokWss) {
+    console.warn(
+      chalk.yellow(
+        "[TikTok Child Process] WebSocket server not initialized. Cannot broadcast."
+      )
+    );
+    return;
+  }
+  const messageString = JSON.stringify(event);
+  tiktokWss.clients.forEach((client) => {
+    if (client.readyState === client.OPEN) {
+      // Check WebSocket.OPEN constant if available in 'ws'
+      client.send(messageString);
+    }
+  });
+}
+
+let tiktokChatConnection = new TikTokLiveConnection(tiktokUsername, {
   processInitialData: false,
   fetchRoomInfoOnConnect: false,
 });
@@ -20,9 +79,13 @@ tiktokChatConnection
   .connect()
   .then((state) => {
     console.info(`TikTok Connected`);
+    // Start the WebSocket server once TikTok connection is successful
+    startTikTokWebSocketServer(TIKTOK_WEBSOCKET_PORT);
   })
   .catch((err) => {
-    console.error("Failed to connect", err);
+    console.error("Failed to connect to TikTok", err);
+    // Optionally, still start WebSocket server or exit based on requirements
+    // For now, if TikTok fails to connect, its WebSocket server won't start.
   });
 
 tiktokChatConnection.on("chat", async (data) => {
@@ -36,6 +99,9 @@ tiktokChatConnection.on("chat", async (data) => {
     logDebug("TikTok", `Problematic chat data: ${JSON.stringify(data)}`);
     return;
   }
+
+  // Broadcast via local WebSocket server
+  broadcastTikTokEvent({ type: "chat", platform: "tiktok", data });
 
   const route = `output/audio-${Date.now()}.wav`;
   const message = replaceLinks(`${comment}`);
@@ -72,6 +138,9 @@ tiktokChatConnection.on("gift", async (data) => {
     logDebug("TikTok", `Problematic gift data: ${JSON.stringify(data)}`);
     return;
   }
+
+  // Broadcast via local WebSocket server
+  broadcastTikTokEvent({ type: "gift", platform: "tiktok", data });
 
   console.log(
     `${new Date().getTime()} - Gift from ${username}: ${giftName} x${repeatCount}`
@@ -162,6 +231,9 @@ tiktokChatConnection.on("subscribe", async (data) => {
     logDebug("TikTok", `Problematic subscribe data: ${JSON.stringify(data)}`);
     return;
   }
+
+  // Broadcast via local WebSocket server
+  broadcastTikTokEvent({ type: "subscribe", platform: "tiktok", data });
 
   logInfo("TikTok", `User ${username} subscribed!`);
   await addUserToCredits(username, "tiktok");

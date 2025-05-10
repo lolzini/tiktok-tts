@@ -138,14 +138,21 @@ function startPlatforms(platformKeys) {
     console.log(platformColor(`Starting ${platform.name} chat service...`));
 
     const scriptPath = join(__dirname, platform.path);
-    const process = spawn("node", [scriptPath], {
-      stdio: "inherit",
+
+    // Adjust stdio for TikTok as it no longer uses IPC for WebSockets
+    const stdioOptions =
+      key === "tiktok"
+        ? ["inherit", "inherit", "inherit"]
+        : ["inherit", "inherit", "inherit", "ipc"]; // Other platforms might still use IPC if we re-add features
+
+    const childProcess = spawn("node", [scriptPath], {
+      stdio: stdioOptions,
       shell: true,
     });
 
-    activeProcesses.push(process);
+    activeProcesses.push(childProcess);
 
-    process.on("error", (err) => {
+    childProcess.on("error", (err) => {
       console.error(
         chalk.red(`Error starting ${platform.name} chat service:`),
         err
@@ -154,17 +161,16 @@ function startPlatforms(platformKeys) {
       process.exit(1);
     });
 
-    process.on("exit", (code) => {
+    childProcess.on("exit", (code) => {
       const statusColor = code === 0 ? chalk.green : chalk.red;
       console.log(
         statusColor(`${platform.name} chat service exited with code ${code}`)
       );
-      const index = activeProcesses.indexOf(process);
+      const index = activeProcesses.indexOf(childProcess);
       if (index > -1) {
         activeProcesses.splice(index, 1);
       }
 
-      // If service exited with error code, exit the program
       if (code !== 0) {
         console.error(
           chalk.red(
@@ -174,7 +180,6 @@ function startPlatforms(platformKeys) {
         process.exit(1);
       }
 
-      // If all processes have exited normally, return to main menu
       if (activeProcesses.length === 0) {
         console.log(
           chalk.yellow(
